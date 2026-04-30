@@ -161,20 +161,18 @@ export default function Home() {
           <h2 className="text-2xl font-bold text-blue-400 mb-6">Choose Your Avatar</h2>
           
           <div className="mb-6 flex justify-center gap-4">
-            <button 
-              onClick={() => setPlayerAvatar('/avatar_mage.png')}
-              className={`w-20 h-20 rounded-lg border-4 transition-all overflow-hidden bg-slate-700 flex items-center justify-center ${playerAvatar === '/avatar_mage.png' ? 'border-blue-500 scale-110 shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'border-slate-600 opacity-50'}`}
-            >
-              <img src="/avatar_mage.png" alt="Mage" className="w-12 h-12 object-contain" onError={(e) => e.currentTarget.style.display = 'none'} />
-              <span className="absolute text-3xl -z-10">🧙‍♂️</span>
-            </button>
-            <button 
-              onClick={() => setPlayerAvatar('/avatar_warrior.png')}
-              className={`w-20 h-20 rounded-lg border-4 transition-all overflow-hidden bg-slate-700 flex items-center justify-center ${playerAvatar === '/avatar_warrior.png' ? 'border-red-500 scale-110 shadow-[0_0_15px_rgba(239,68,68,0.5)]' : 'border-slate-600 opacity-50'}`}
-            >
-              <img src="/avatar_warrior.png" alt="Warrior" className="w-12 h-12 object-contain" onError={(e) => e.currentTarget.style.display = 'none'} />
-              <span className="absolute text-3xl -z-10">🥷</span>
-            </button>
+            <button 
+              onClick={() => setPlayerAvatar('/avatar_mage.png')}
+              className={`w-20 h-20 rounded-lg border-4 transition-all overflow-hidden bg-slate-700 flex items-center justify-center ${playerAvatar === '/avatar_mage.png' ? 'border-blue-500 scale-110 shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'border-slate-600 opacity-50'}`}
+            >
+              <Sprite col={24} row={0} scale={3} />
+            </button>
+            <button 
+              onClick={() => setPlayerAvatar('/avatar_warrior.png')}
+              className={`w-20 h-20 rounded-lg border-4 transition-all overflow-hidden bg-slate-700 flex items-center justify-center ${playerAvatar === '/avatar_warrior.png' ? 'border-red-500 scale-110 shadow-[0_0_15px_rgba(239,68,68,0.5)]' : 'border-slate-600 opacity-50'}`}
+            >
+              <Sprite col={26} row={0} scale={3} />
+            </button>
           </div>
 
           <input 
@@ -264,12 +262,12 @@ export default function Home() {
                               setUnlockedCards([...unlockedCards, ...newCards]);
                               showToast(`✨ Unlocked Card: ${newCards.map(c => c.word).join(', ')}!`);
                             } else {
-                              showToast(`⚠️ You already own ${newCards.map(c => c.word).join(', ')}.`);
+                              showToast(`⚠️ You already have these cards.`);
                             }
                           }
                           transitionTo('MAP');
                         } else {
-                          showToast("❌ Not quite. The tutor shakes their head. Try again!");
+                          showToast("❌ Not quite. Try again!");
                         }
                       }}
                       className={`px-4 py-3 rounded transition text-left text-white ${isGrinding ? 'bg-slate-700 hover:bg-emerald-600' : 'bg-slate-700 hover:bg-blue-600'}`}
