@@ -2,7 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'LinguaForge Online',
+  title: 'LinguaForge',
   description: 'Master languages. Collect cards. Conquer the world.',
 };
 

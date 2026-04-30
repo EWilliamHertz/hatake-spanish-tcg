@@ -51,13 +51,13 @@ export default function Home() {
         </div>
       )}
 
-      {mode !== 'LANDING' && <h1 className="text-4xl font-bold mb-8">Hatake Spanish TCG</h1>}
+      {mode !== 'LANDING' && <h1 className="text-4xl font-bold mb-8">LinguaForge</h1>}
 
       {mode === 'LANDING' && (
         <div className="flex flex-col items-center justify-center h-[70vh] text-center mt-12">
           <span className="text-6xl mb-4">🌍🃏</span>
           <h1 className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-6 drop-shadow-lg">
-            LinguaForge Online
+            LinguaForge
           </h1>
           <p className="text-slate-400 mb-12 max-w-md text-lg">Master languages. Collect cards. Conquer the world.</p>
           <button 
