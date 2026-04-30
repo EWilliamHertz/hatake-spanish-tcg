@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import gameData from '../data/gameData.json';
+import Sprite from '../components/Sprite';
 
 export default function Home() {
   const [mode, setMode] = useState<'LANDING' | 'LOGIN' | 'MENU' | 'LEARNING' | 'BATTLE' | 'MAP'>('LANDING');
@@ -378,9 +379,9 @@ export default function Home() {
                 <div 
                   key={i} 
                   className={`rounded-sm flex items-center justify-center relative transition-colors overflow-hidden
-                    ${isPlayer ? 'bg-blue-700/80 shadow-[inset_0_0_15px_rgba(59,130,246,0.8)]' : bgClass}
-                    ${(isExitToForest || isExitToVolcano) ? 'bg-blue-900/50 border-2 border-blue-500 animate-pulse' : ''}
-                    ${(isExitToVillageFromForest || isExitToForestFromVolcano) ? 'bg-yellow-900/50 border-2 border-yellow-500 animate-pulse' : ''}
+                    ${isPlayer ? 'shadow-[inset_0_0_15px_rgba(255,255,255,0.5)] z-20' : ''}
+                    ${(isExitToForest || isExitToVolcano) ? 'border-2 border-blue-500 animate-pulse' : ''}
+                    ${(isExitToVillageFromForest || isExitToForestFromVolcano) ? 'border-2 border-yellow-500 animate-pulse' : ''}
                   `}
                   onContextMenu={(e) => {
                     e.preventDefault();
@@ -412,25 +413,31 @@ export default function Home() {
                     }
                   }}
                 >
-                  <img src={tileImage} alt="tile" className="absolute w-full h-full object-cover opacity-20 pointer-events-none" onError={(e) => e.currentTarget.style.display = 'none'} />
+                  
+                  <div className="absolute w-full h-full flex items-center justify-center opacity-80 -z-10">
+                    {currentZone === 'Starter Village' && <Sprite col="{5}" row="{0}" scale="{3}"/>} 
+                    {currentZone === 'Dark Forest' && <Sprite col="{6}" row="{0}" scale="{3}"/>} 
+                    {currentZone === 'Volcano' && <Sprite col="{3}" row="{3}" scale="{3}"/>} 
+                  </div>
 
-                  {(isExitToForest || isExitToVolcano) && <span className="text-[10px] font-bold text-blue-300 absolute z-0 drop-shadow-md pointer-events-none">NEXT ➡️</span>}
-                  {(isExitToVillageFromForest || isExitToForestFromVolcano) && <span className="text-[10px] font-bold text-yellow-300 absolute z-0 drop-shadow-md pointer-events-none">⬅️ BACK</span>}
+                  {(isExitToForest || isExitToVolcano) && <span className="text-[10px] font-bold text-blue-300 absolute z-0 drop-shadow-[0_0_2px_black] pointer-events-none">NEXT ➡️</span>}
+                  {(isExitToVillageFromForest || isExitToForestFromVolcano) && <span className="text-[10px] font-bold text-yellow-300 absolute z-0 drop-shadow-[0_0_2px_black] pointer-events-none">⬅️ BACK</span>}
 
                   {isPlayer && (
-                    <div className="absolute z-10 w-full h-full flex items-center justify-center drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">
-                      <img src={playerAvatar} alt="Player" className="w-10 h-10 object-contain animate-bounce" onError={(e) => e.currentTarget.style.display = 'none'} />
-                    </div>
+                    <div className="absolute z-10 animate-bounce drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)]">
+<Sprite col={playerAvatar === '/avatar_mage.png' ? 24 : 26} row={0} scale={2} />                    </div>
                   )}
                   
-                  {isEnemyPlayer && <div className="text-3xl absolute z-10 cursor-pointer hover:scale-110 transition drop-shadow-md" title="Right-click me!">🥷</div>}
+                  {isEnemyPlayer && <div className="absolute z-10 cursor-pointer hover:scale-110 transition drop-shadow-md"><Sprite col="{25}" row="{0}" scale="{2}"/></div>}
                   
-                  {isBlacksmith && <img src="/npc_blacksmith.png" className="w-8 h-8 absolute z-10 cursor-pointer hover:scale-110 transition drop-shadow-md" title="The Blacksmith" onError={(e) => e.currentTarget.style.display = 'none'} />}
-                  {isScholar && <img src="/npc_scholar.png" className="w-8 h-8 absolute z-10 cursor-pointer hover:scale-110 transition drop-shadow-md" title="The Scholar" onError={(e) => e.currentTarget.style.display = 'none'} />}
-                  {isAlchemist && <img src="/npc_alchemist.png" className="w-8 h-8 absolute z-10 cursor-pointer hover:scale-110 transition drop-shadow-md animate-pulse" title="The Alchemist" onError={(e) => e.currentTarget.style.display = 'none'} />}
+                  {isBlacksmith && <div className="absolute z-10 cursor-pointer hover:scale-110 transition drop-shadow-md" title="The Blacksmith"><Sprite col="{27}" row="{1}" scale="{2}"/></div>}
+                  {isScholar && <div className="absolute z-10 cursor-pointer hover:scale-110 transition drop-shadow-md" title="The Scholar"><Sprite col="{29}" row="{4}" scale="{2}"/></div>}
+                  {isAlchemist && <div className="absolute z-10 cursor-pointer hover:scale-110 transition drop-shadow-md animate-pulse" title="The Alchemist"><Sprite col="{28}" row="{8}" scale="{2}"/></div>}
                   
-                  {(currentZone === 'Dark Forest' && (x === 1 || y === 3)) && <div className="text-2xl absolute opacity-90 drop-shadow-md pointer-events-none">🌲</div>}
-                  {(currentZone === 'Volcano' && (x === 0 || y === 2)) && <div className="text-2xl absolute opacity-90 drop-shadow-md pointer-events-none text-red-500">🔥</div>}
+                  
+                  {(currentZone === 'Starter Village' && (x === 0 && y === 0)) && <div className="absolute opacity-90 drop-shadow-md pointer-events-none"><Sprite col="{1}" row="{8}" scale="{2}"/></div>} 
+                  {(currentZone === 'Dark Forest' && (x === 1 || y === 3)) && <div className="absolute opacity-90 drop-shadow-md pointer-events-none"><Sprite col="{11}" row="{5}" scale="{2}"/></div>} 
+                  {(currentZone === 'Volcano' && (x === 0 || y === 2)) && <div className="absolute opacity-90 drop-shadow-md pointer-events-none"><Sprite col="{10}" row="{4}" scale="{2}"/></div>} 
                 </div>
               )
             })}
