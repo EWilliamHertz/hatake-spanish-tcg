@@ -6,39 +6,13 @@
         {
           "id": "blacksmith_espada",
           "npc_name": "The Blacksmith",
-          "npc_talk": "Ah, a new warrior. In this world, words are weapons. Take 'La Espada'—it means 'The Sword'. Words ending in 'a' are usually feminine.",
+          "npc_talk": "Ah, a new warrior. In this world, words are weapons. Take 'La Espada'—it means 'The Sword'.",
           "cards_to_unlock": [
             { "id": "espada", "word": "Espada", "translation": "Sword", "type": "Attack", "power": 10 }
           ],
           "quiz": {
             "question": "How do you say 'The Sword'?",
             "options": ["El Espada", "La Espada", "Un Espada"],
-            "correct": 1
-          }
-        },
-        {
-          "id": "armorer_escudo",
-          "npc_name": "The Armorer",
-          "npc_talk": "A sword is useless if you are dead! 'El Escudo' means 'The Shield'. Words ending in 'o' are usually masculine.",
-          "cards_to_unlock": [
-            { "id": "escudo", "word": "Escudo", "translation": "Shield", "type": "Defense", "power": 5 }
-          ],
-          "quiz": {
-            "question": "How do you say 'The Shield'?",
-            "options": ["El Escudo", "La Escudo", "Una Escudo"],
-            "correct": 0
-          }
-        },
-        {
-          "id": "alchemist_fuego",
-          "npc_name": "The Alchemist",
-          "npc_talk": "Steel is weak compared to the elements. 'El Fuego' means 'The Fire'. It burns your enemies!",
-          "cards_to_unlock": [
-            { "id": "fuego", "word": "Fuego", "translation": "Fire", "type": "Magic", "power": 15 }
-          ],
-          "quiz": {
-            "question": "How do you say 'The Fire'?",
-            "options": ["La Fuego", "El Fuego", "Los Fuegos"],
             "correct": 1
           }
         },
@@ -56,16 +30,16 @@
           }
         },
         {
-          "id": "scholar_combat",
-          "npc_name": "The Scholar",
-          "npc_talk": "When challenged, you must declare your intent! '¡Prepárate para luchar!' means 'Prepare to fight!'",
+          "id": "alchemist_fuego",
+          "npc_name": "The Alchemist",
+          "npc_talk": "Steel is weak compared to the elements. 'El Fuego' means 'The Fire'. It burns your enemies!",
           "cards_to_unlock": [
-            { "id": "preparate", "word": "¡Prepárate!", "translation": "Prepare yourself!", "type": "Buff", "power": 20 }
+            { "id": "fuego", "word": "Fuego", "translation": "Fire", "type": "Magic", "power": 15 }
           ],
           "quiz": {
-            "question": "Translate: 'Prepare to fight!'",
-            "options": ["¡Prepárate para luchar!", "No quiero pelear.", "Tengo una espada."],
-            "correct": 0
+            "question": "How do you say 'The Fire'?",
+            "options": ["La Fuego", "El Fuego", "Los Fuegos"],
+            "correct": 1
           }
         }
       ]

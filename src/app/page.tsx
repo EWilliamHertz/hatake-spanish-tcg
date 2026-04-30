@@ -1,8 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
 import gameData from '../data/gameData.json';
-// Note: We will comment this out temporarily until your DB is fully set up
-// import { savePlayerToDB } from './actions'; 
 
 export default function Home() {
   const [mode, setMode] = useState<'LANDING' | 'LOGIN' | 'MENU' | 'LEARNING' | 'BATTLE' | 'MAP'>('LANDING');
@@ -11,12 +9,12 @@ export default function Home() {
   const [playerAvatar, setPlayerAvatar] = useState('/avatar_mage.png');
   const [isLoading, setIsLoading] = useState(false);
   const [dummyHp, setDummyHp] = useState(50);
-  const [activeLesson, setActiveLesson] = useState<number | null>(null);
-  const [isGrinding, setIsGrinding] = useState(false); // Are we doing an EXP quiz?
   
   // Progression & MMO States
   const [exp, setExp] = useState(0);
   const [friendsList, setFriendsList] = useState<string[]>([]);
+  const [activeLesson, setActiveLesson] = useState<number | null>(null);
+  const [isGrinding, setIsGrinding] = useState(false);
   
   // Overworld States
   const [toast, setToast] = useState<string | null>(null);
@@ -29,10 +27,17 @@ export default function Home() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  // WASD Keyboard Movement Listener
+  const transitionTo = (nextMode: typeof mode) => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setMode(nextMode);
+      setIsLoading(false);
+    }, 500); 
+  };
+
+  // WASD Keyboard Movement
   useEffect(() => {
     if (mode !== 'MAP') return;
-    
     const handleKeyDown = (e: KeyboardEvent) => {
       setPlayerPosition(prev => {
         const newPos = { ...prev };
@@ -43,47 +48,16 @@ export default function Home() {
         return newPos;
       });
     };
-    
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [mode]);
 
-  // Close Context Menu when clicking elsewhere
+  // Close Context Menu on click
   useEffect(() => {
     const handleClick = () => setContextMenu(null);
     window.addEventListener('click', handleClick);
     return () => window.removeEventListener('click', handleClick);
   }, []);
-
-  // Helper function to handle smooth page transitions
-  const transitionTo = (nextMode: typeof mode) => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setMode(nextMode);
-      setIsLoading(false);
-    }, 800); // 800ms fake loading time for vibe
-  };
-
-  const handleLogin = async () => {
-    if (!playerName.trim()) return;
-    setIsLoading(true);
-    
-    // TEMPORARY BYPASS: Since actions.ts is missing from your repo, 
-    // we will just let you into the game without hitting the NeonDB yet.
-    /*
-    const result = await savePlayerToDB(playerName);
-    if (result.success) {
-      setMode('MENU');
-    } else {
-      alert(result.error);
-    }
-    */
-    
-    setTimeout(() => {
-      setMode('MENU');
-      setIsLoading(false);
-    }, 500);
-  };
 
   return (
     <main className="min-h-screen bg-slate-900 text-white p-8 flex flex-col items-center relative overflow-hidden">
@@ -112,7 +86,7 @@ export default function Home() {
                 onClick={() => {
                   setContextMenu(null);
                   setActiveLesson(contextMenu.lessonId!);
-                  setIsGrinding(false); // First talk is always for the card
+                  setIsGrinding(false); 
                   transitionTo('LEARNING');
                 }}
                 className="w-full text-left px-4 py-2 hover:bg-slate-700 transition text-sm text-white"
@@ -123,7 +97,7 @@ export default function Home() {
                 onClick={() => {
                   setContextMenu(null);
                   setActiveLesson(contextMenu.lessonId!);
-                  setIsGrinding(true); // Second talk is for EXP
+                  setIsGrinding(true); 
                   transitionTo('LEARNING');
                 }}
                 className="w-full text-left px-4 py-2 hover:bg-emerald-900 transition text-sm text-emerald-300 border-t border-slate-700"
@@ -163,13 +137,13 @@ export default function Home() {
         </div>
       )}
 
-      {mode !== 'LANDING' && <h1 className="text-4xl font-bold mb-8">LinguaForge</h1>}
+      {mode !== 'LANDING' && <h1 className="text-4xl font-bold mb-8">LinguaForge Online</h1>}
 
       {mode === 'LANDING' && (
         <div className="flex flex-col items-center justify-center h-[70vh] text-center mt-12">
           <span className="text-6xl mb-4">🌍🃏</span>
           <h1 className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-6 drop-shadow-lg">
-            LinguaForge
+            LinguaForge Online
           </h1>
           <p className="text-slate-400 mb-12 max-w-md text-lg">Master languages. Collect cards. Conquer the world.</p>
           <button 
@@ -183,7 +157,7 @@ export default function Home() {
 
       {mode === 'LOGIN' && (
         <div className="bg-slate-800 p-8 rounded-xl border border-slate-600 w-full max-w-md text-center shadow-xl">
-          <h2 className="text-2xl font-bold text-blue-400 mb-6">Create Your Avatar</h2>
+          <h2 className="text-2xl font-bold text-blue-400 mb-6">Choose Your Avatar</h2>
           
           <div className="mb-6 flex justify-center gap-4">
             <button 
@@ -211,7 +185,7 @@ export default function Home() {
           />
           
           <button 
-            onClick={handleLogin}
+            onClick={() => { if (playerName.trim()) transitionTo('MENU'); }}
             className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded transition flex justify-center items-center gap-2"
           >
             Enter the World
@@ -228,7 +202,7 @@ export default function Home() {
              </div>
              <div className="flex-1 z-10">
                <p className="text-slate-400 text-xs uppercase tracking-wider flex justify-between">
-                 <span>Welcome back,</span>
+                 <span>Camp</span>
                  <span className="text-emerald-400 font-bold">LVL {Math.floor(exp / 100) + 1}</span>
                </p>
                <p className="font-bold text-xl text-white">{playerName}</p>
@@ -239,7 +213,6 @@ export default function Home() {
              </div>
           </div>
           
-          {/* Quick Friends List Snippet */}
           {friendsList.length > 0 && (
             <div className="bg-slate-900/50 border border-slate-700 p-2 rounded text-xs text-slate-400 flex gap-2 overflow-x-auto">
               <span className="font-bold text-slate-300">Friends:</span> 
@@ -255,34 +228,22 @@ export default function Home() {
           </button>
           <button 
             onClick={() => transitionTo('MAP')}
-            className="bg-green-600 px-6 py-3 rounded-lg hover:bg-green-500 transition"
+            className="bg-green-600 px-6 py-3 rounded-lg hover:bg-green-500 transition shadow-[0_0_15px_rgba(34,197,94,0.3)]"
           >
             Explore the World (MMO Map)
           </button>
         </div>
       )}
 
-      {mode === 'LEARNING' && (
-        <div className="bg-slate-800 p-6 rounded-xl max-w-md w-full border border-blue-500">
-          {activeLesson === null ? (
+      {mode === 'LEARNING' && activeLesson !== null && (
+        <div className={`bg-slate-800 p-6 rounded-xl max-w-md w-full border ${isGrinding ? 'border-emerald-500 shadow-emerald-900/30' : 'border-blue-500 shadow-blue-900/30'} shadow-lg`}>
             <div>
-              <h2 className="text-2xl font-bold text-blue-400 mb-4">Choose a Tutor</h2>
-              <div className="flex flex-col gap-3">
-                {gameData.languages.spanish.lessons.map((lesson, idx) => (
-                  <button 
-                    key={idx}
-                    onClick={() => setActiveLesson(idx)}
-                    className="bg-slate-700 hover:bg-blue-600 px-4 py-3 rounded transition text-left text-white"
-                  >
-                    Talk to {lesson.npc_name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div>
-              <h3 className="font-bold text-blue-400 mb-2">{gameData.languages.spanish.lessons[activeLesson].npc_name}</h3>
-              <p className="italic mb-6 text-blue-300 text-lg">"{gameData.languages.spanish.lessons[activeLesson].npc_talk}"</p>
+              <h3 className={`font-bold mb-2 ${isGrinding ? 'text-emerald-400' : 'text-blue-400'} flex justify-between`}>
+                <span>{gameData.languages.spanish.lessons[activeLesson].npc_name}</span>
+                <span className="text-xs bg-slate-900 px-2 py-1 rounded">{isGrinding ? '+ EXP Practice' : 'Unlock Card'}</span>
+              </h3>
+              
+              <p className="italic mb-6 text-slate-300 text-lg">"{gameData.languages.spanish.lessons[activeLesson].npc_talk}"</p>
               
               <div className="bg-slate-900 p-4 rounded-lg border border-slate-700">
                 <p className="mb-4 font-semibold text-white">{gameData.languages.spanish.lessons[activeLesson].quiz.question}</p>
@@ -292,20 +253,25 @@ export default function Home() {
                       key={index}
                       onClick={() => {
                         if (index === gameData.languages.spanish.lessons[activeLesson].quiz.correct) {
-                          const newCards = gameData.languages.spanish.lessons[activeLesson].cards_to_unlock;
-                          showToast(`✨ Unlocked: ${newCards.map(c => c.word).join(', ')}!`);
-                          
-                          const isAlreadyUnlocked = unlockedCards.some(card => card.id === newCards[0].id);
-                          if (!isAlreadyUnlocked) {
-                            setUnlockedCards([...unlockedCards, ...newCards]);
+                          if (isGrinding) {
+                            setExp(prev => prev + 25);
+                            showToast("🌟 Correct! +25 EXP Gained!");
+                          } else {
+                            const newCards = gameData.languages.spanish.lessons[activeLesson].cards_to_unlock;
+                            const isAlreadyUnlocked = unlockedCards.some(card => card.id === newCards[0].id);
+                            if (!isAlreadyUnlocked) {
+                              setUnlockedCards([...unlockedCards, ...newCards]);
+                              showToast(`✨ Unlocked Card: ${newCards.map(c => c.word).join(', ')}!`);
+                            } else {
+                              showToast(`⚠️ You already own ${newCards.map(c => c.word).join(', ')}.`);
+                            }
                           }
-                          
-                          setActiveLesson(null); // Return to tutor list, NOT the main menu
+                          transitionTo('MAP');
                         } else {
                           showToast("❌ Not quite. The tutor shakes their head. Try again!");
                         }
                       }}
-                      className="bg-slate-700 hover:bg-blue-600 px-4 py-3 rounded transition text-left text-white"
+                      className={`px-4 py-3 rounded transition text-left text-white ${isGrinding ? 'bg-slate-700 hover:bg-emerald-600' : 'bg-slate-700 hover:bg-blue-600'}`}
                     >
                       {option}
                     </button>
@@ -313,20 +279,12 @@ export default function Home() {
                 </div>
               </div>
               <button 
-                onClick={() => setActiveLesson(null)}
-                className="mt-4 text-sm text-slate-400 hover:text-white underline transition block"
+                onClick={() => transitionTo('MAP')}
+                className="mt-6 text-sm text-slate-400 hover:text-white underline transition block w-full text-center border-t border-slate-700 pt-4"
               >
-                Back to Tutors
+                Walk away
               </button>
             </div>
-          )}
-
-          <button 
-            onClick={() => transitionTo('MENU')}
-            className="mt-6 text-sm text-slate-400 hover:text-white underline transition border-t border-slate-700 pt-4 w-full text-left"
-          >
-            Flee back to Camp
-          </button>
         </div>
       )}
 
@@ -343,7 +301,7 @@ export default function Home() {
               ></div>
             </div>
             <p className="mt-2 font-mono">HP: {dummyHp} / 50</p>
-            {dummyHp === 0 && <p className="text-green-400 font-bold mt-2 animate-bounce">Dummy Destroyed!</p>}
+            {dummyHp <= 0 && <p className="text-green-400 font-bold mt-2 animate-bounce">Dummy Destroyed!</p>}
             <button 
               onClick={() => setDummyHp(50)} 
               className="mt-4 text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded"
@@ -356,7 +314,7 @@ export default function Home() {
           {unlockedCards.length === 0 ? (
             <div className="bg-slate-900 p-6 rounded text-center border border-dashed border-slate-600">
               <p className="text-slate-400 italic">Your hands are empty.</p>
-              <p className="text-sm text-slate-500 mt-2">Go visit the Sage to learn your first words!</p>
+              <p className="text-sm text-slate-500 mt-2">Explore the Map to find Tutors!</p>
             </div>
           ) : (
             <div className="flex flex-wrap gap-4 mb-6">
@@ -375,10 +333,7 @@ export default function Home() {
           )}
           
           <div className="text-center mt-8">
-            <button onClick={() => {
-              setDummyHp(50);
-              transitionTo('MENU');
-            }} className="text-sm text-slate-400 hover:text-white underline transition">
+            <button onClick={() => { setDummyHp(50); transitionTo('MENU'); }} className="text-sm text-slate-400 hover:text-white underline transition">
               Flee Arena
             </button>
           </div>
@@ -400,19 +355,16 @@ export default function Home() {
               
               // Map Entities
               const isEnemyPlayer = currentZone === 'Starter Village' && x === 1 && y === 1; 
-              
-              // Spread out the Tutors!
               const isBlacksmith = currentZone === 'Starter Village' && x === 4 && y === 0;
               const isScholar = currentZone === 'Dark Forest' && x === 2 && y === 2;
               const isAlchemist = currentZone === 'Volcano' && x === 3 && y === 1;
               
-              // Zone Transition Tiles
+              // Zone Portals
               const isExitToForest = currentZone === 'Starter Village' && x === 4 && y === 4;
               const isExitToVillageFromForest = currentZone === 'Dark Forest' && x === 0 && y === 0;
               const isExitToVolcano = currentZone === 'Dark Forest' && x === 4 && y === 0;
               const isExitToForestFromVolcano = currentZone === 'Volcano' && x === 0 && y === 4;
               
-              // Dynamic Backgrounds
               let bgClass = 'bg-emerald-800/40';
               let tileImage = '/tile_grass.png';
               if (currentZone === 'Volcano') {
@@ -433,9 +385,9 @@ export default function Home() {
                   onContextMenu={(e) => {
                     e.preventDefault();
                     if (isEnemyPlayer) setContextMenu({ x: e.clientX, y: e.clientY, target: 'xX_Shadow_Xx', type: 'player' });
-                    if (isBlacksmith) setContextMenu({ x: e.clientX, y: e.clientY, target: 'The Blacksmith', type: 'npc', lessonId: 0 }); // Maps to gameData index 0
-                    if (isScholar) setContextMenu({ x: e.clientX, y: e.clientY, target: 'The Scholar', type: 'npc', lessonId: 1 }); // Maps to gameData index 1
-                    if (isAlchemist) setContextMenu({ x: e.clientX, y: e.clientY, target: 'The Alchemist', type: 'npc', lessonId: 3 }); // Maps to gameData index 3
+                    if (isBlacksmith) setContextMenu({ x: e.clientX, y: e.clientY, target: 'The Blacksmith', type: 'npc', lessonId: 0 }); 
+                    if (isScholar) setContextMenu({ x: e.clientX, y: e.clientY, target: 'The Scholar', type: 'npc', lessonId: 1 }); 
+                    if (isAlchemist) setContextMenu({ x: e.clientX, y: e.clientY, target: 'The Alchemist', type: 'npc', lessonId: 2 }); 
                   }}
                   onClick={() => {
                     if (isPlayer && isExitToForest) {
@@ -460,14 +412,11 @@ export default function Home() {
                     }
                   }}
                 >
-                  {/* Background Tile */}
                   <img src={tileImage} alt="tile" className="absolute w-full h-full object-cover opacity-20 pointer-events-none" onError={(e) => e.currentTarget.style.display = 'none'} />
 
-                  {/* Zone Portals */}
-                  {(isExitToForest || isExitToVolcano) && <span className="text-[10px] font-bold text-blue-300 absolute z-0 drop-shadow-md">NEXT ➡️</span>}
-                  {(isExitToVillageFromForest || isExitToForestFromVolcano) && <span className="text-[10px] font-bold text-yellow-300 absolute z-0 drop-shadow-md">⬅️ BACK</span>}
+                  {(isExitToForest || isExitToVolcano) && <span className="text-[10px] font-bold text-blue-300 absolute z-0 drop-shadow-md pointer-events-none">NEXT ➡️</span>}
+                  {(isExitToVillageFromForest || isExitToForestFromVolcano) && <span className="text-[10px] font-bold text-yellow-300 absolute z-0 drop-shadow-md pointer-events-none">⬅️ BACK</span>}
 
-                  {/* Dynamic Player Sprite */}
                   {isPlayer && (
                     <div className="absolute z-10 w-full h-full flex items-center justify-center drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">
                       <img src={playerAvatar} alt="Player" className="w-10 h-10 object-contain animate-bounce" onError={(e) => e.currentTarget.style.display = 'none'} />
@@ -476,12 +425,10 @@ export default function Home() {
                   
                   {isEnemyPlayer && <div className="text-3xl absolute z-10 cursor-pointer hover:scale-110 transition drop-shadow-md" title="Right-click me!">🥷</div>}
                   
-                  {/* The Tutors! */}
                   {isBlacksmith && <img src="/npc_blacksmith.png" className="w-8 h-8 absolute z-10 cursor-pointer hover:scale-110 transition drop-shadow-md" title="The Blacksmith" onError={(e) => e.currentTarget.style.display = 'none'} />}
                   {isScholar && <img src="/npc_scholar.png" className="w-8 h-8 absolute z-10 cursor-pointer hover:scale-110 transition drop-shadow-md" title="The Scholar" onError={(e) => e.currentTarget.style.display = 'none'} />}
                   {isAlchemist && <img src="/npc_alchemist.png" className="w-8 h-8 absolute z-10 cursor-pointer hover:scale-110 transition drop-shadow-md animate-pulse" title="The Alchemist" onError={(e) => e.currentTarget.style.display = 'none'} />}
                   
-                  {/* Decorations */}
                   {(currentZone === 'Dark Forest' && (x === 1 || y === 3)) && <div className="text-2xl absolute opacity-90 drop-shadow-md pointer-events-none">🌲</div>}
                   {(currentZone === 'Volcano' && (x === 0 || y === 2)) && <div className="text-2xl absolute opacity-90 drop-shadow-md pointer-events-none text-red-500">🔥</div>}
                 </div>
@@ -490,7 +437,8 @@ export default function Home() {
           </div>
 
           <p className="text-emerald-400 font-bold text-center mb-6">
-            Move to the flashing tiles and <span className="text-white bg-slate-700 px-2 rounded">CLICK</span> to travel between zones!
+            Move to flashing tiles and <span className="text-white bg-slate-700 px-2 rounded">CLICK</span> to travel. <br/>
+            Right-click NPCs to Learn!
           </p>
 
           <div className="text-center">
