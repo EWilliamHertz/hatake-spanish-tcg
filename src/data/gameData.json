@@ -1,0 +1,24 @@
+{
+  "languages": {
+    "spanish": {
+      "unlocked": true,
+      "lessons": [
+        {
+          "id": "intro_nouns",
+          "npc_talk": "Welcome, traveler. In this world, words are power. Take 'La Espada'—it means 'The Sword'. Words ending in 'a' are usually feminine.",
+          "cards_to_unlock": [
+            { "id": "espada", "word": "Espada", "translation": "Sword", "type": "Attack", "power": 10 },
+            { "id": "escudo", "word": "Escudo", "translation": "Shield", "type": "Defense", "power": 5 }
+          ],
+          "quiz": {
+            "question": "How do you say 'The Sword'?",
+            "options": ["El Espada", "La Espada", "Un Espada"],
+            "correct": 1
+          }
+        }
+      ]
+    },
+    "japanese": { "unlocked": false, "lessons": [] },
+    "french": { "unlocked": false, "lessons": [] }
+  }
+}
