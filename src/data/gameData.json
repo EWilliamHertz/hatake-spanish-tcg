@@ -41,6 +41,32 @@
             "options": ["La Fuego", "El Fuego", "Los Fuegos"],
             "correct": 1
           }
+        },
+        {
+          "id": "scholar_greetings",
+          "npc_name": "The Scholar",
+          "npc_talk": "Single words are for beginners. To survive, you must speak! 'Hola, ¿cómo estás?' means 'Hello, how are you?'",
+          "cards_to_unlock": [
+            { "id": "como_estas", "word": "¿Cómo estás?", "translation": "How are you?", "type": "Utility", "power": 0 }
+          ],
+          "quiz": {
+            "question": "Translate: 'Hello, how are you?'",
+            "options": ["Adiós, estoy bien.", "Hola, ¿cómo estás?", "Por favor, gracias."],
+            "correct": 1
+          }
+        },
+        {
+          "id": "scholar_combat",
+          "npc_name": "The Scholar",
+          "npc_talk": "When challenged, you must declare your intent! '¡Prepárate para luchar!' means 'Prepare to fight!'",
+          "cards_to_unlock": [
+            { "id": "preparate", "word": "¡Prepárate!", "translation": "Prepare yourself!", "type": "Buff", "power": 20 }
+          ],
+          "quiz": {
+            "question": "Translate: 'Prepare to fight!'",
+            "options": ["¡Prepárate para luchar!", "No quiero pelear.", "Tengo una espada."],
+            "correct": 0
+          }
         }
       ]
     },

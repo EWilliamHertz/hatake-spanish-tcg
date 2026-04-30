@@ -8,14 +8,21 @@ export default function Home() {
   const [mode, setMode] = useState<'LANDING' | 'LOGIN' | 'MENU' | 'LEARNING' | 'BATTLE' | 'MAP'>('LANDING');
   const [unlockedCards, setUnlockedCards] = useState<any[]>([]);
   const [playerName, setPlayerName] = useState('');
+  const [playerAvatar, setPlayerAvatar] = useState('/avatar_mage.png');
   const [isLoading, setIsLoading] = useState(false);
   const [dummyHp, setDummyHp] = useState(50);
   const [activeLesson, setActiveLesson] = useState<number | null>(null);
+  const [isGrinding, setIsGrinding] = useState(false); // Are we doing an EXP quiz?
   
-  // New States for MMO Features
+  // Progression & MMO States
+  const [exp, setExp] = useState(0);
+  const [friendsList, setFriendsList] = useState<string[]>([]);
+  
+  // Overworld States
   const [toast, setToast] = useState<string | null>(null);
   const [playerPosition, setPlayerPosition] = useState({ x: 2, y: 2 });
-  const [contextMenu, setContextMenu] = useState<{ x: number, y: number, target: string } | null>(null);
+  const [currentZone, setCurrentZone] = useState('Starter Village');
+  const [contextMenu, setContextMenu] = useState<{ x: number, y: number, target: string, type: 'player' | 'npc', lessonId?: number } | null>(null);
 
   const showToast = (message: string) => {
     setToast(message);
@@ -93,15 +100,58 @@ export default function Home() {
         <div 
           className="fixed bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-50 w-48 overflow-hidden"
           style={{ top: contextMenu.y, left: contextMenu.x }}
-          onClick={(e) => e.stopPropagation()} // Prevent click from instantly closing it
+          onClick={(e) => e.stopPropagation()} 
         >
-          <div className="bg-slate-900 px-4 py-2 border-b border-slate-700 text-blue-400 font-bold text-sm">
-            Target: {contextMenu.target}
+          <div className={`px-4 py-2 border-b border-slate-700 font-bold text-sm ${contextMenu.type === 'player' ? 'bg-red-900/30 text-red-400' : 'bg-blue-900/30 text-blue-400'}`}>
+            {contextMenu.target}
           </div>
-          <button className="w-full text-left px-4 py-2 hover:bg-slate-700 transition text-sm text-white">Move Here</button>
-          <button className="w-full text-left px-4 py-2 hover:bg-slate-700 transition text-sm text-white">Talk to {contextMenu.target}</button>
-          <button className="w-full text-left px-4 py-2 hover:bg-red-900 transition text-sm text-red-300">Duel Player</button>
-          <button className="w-full text-left px-4 py-2 hover:bg-emerald-900 transition text-sm text-emerald-300">Add as Friend</button>
+          
+          {contextMenu.type === 'npc' && (
+            <>
+              <button 
+                onClick={() => {
+                  setContextMenu(null);
+                  setActiveLesson(contextMenu.lessonId!);
+                  setIsGrinding(false); // First talk is always for the card
+                  transitionTo('LEARNING');
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-slate-700 transition text-sm text-white"
+              >
+                Request Lesson (Cards)
+              </button>
+              <button 
+                onClick={() => {
+                  setContextMenu(null);
+                  setActiveLesson(contextMenu.lessonId!);
+                  setIsGrinding(true); // Second talk is for EXP
+                  transitionTo('LEARNING');
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-emerald-900 transition text-sm text-emerald-300 border-t border-slate-700"
+              >
+                Chat / Practice (EXP)
+              </button>
+            </>
+          )}
+
+          {contextMenu.type === 'player' && (
+            <>
+              <button className="w-full text-left px-4 py-2 hover:bg-red-900 transition text-sm text-red-300">Duel Player</button>
+              <button 
+                onClick={() => {
+                  if (!friendsList.includes(contextMenu.target)) {
+                    setFriendsList([...friendsList, contextMenu.target]);
+                    showToast(`${contextMenu.target} added to friends!`);
+                  } else {
+                    showToast(`${contextMenu.target} is already your friend.`);
+                  }
+                  setContextMenu(null);
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-emerald-900 transition text-sm text-emerald-300 border-t border-slate-700"
+              >
+                Add as Friend
+              </button>
+            </>
+          )}
         </div>
       )}
 
@@ -135,11 +185,21 @@ export default function Home() {
         <div className="bg-slate-800 p-8 rounded-xl border border-slate-600 w-full max-w-md text-center shadow-xl">
           <h2 className="text-2xl font-bold text-blue-400 mb-6">Create Your Avatar</h2>
           
-          <div className="mb-6 flex justify-center">
-            <div className="w-24 h-24 bg-slate-700 rounded-full border-4 border-slate-500 flex items-center justify-center relative">
-              <span className="text-5xl">🧑‍💻</span>
-              <span className="absolute bottom-0 right-0 text-2xl drop-shadow-md" title="Spanish Learner">🇪🇸</span>
-            </div>
+          <div className="mb-6 flex justify-center gap-4">
+            <button 
+              onClick={() => setPlayerAvatar('/avatar_mage.png')}
+              className={`w-20 h-20 rounded-lg border-4 transition-all overflow-hidden bg-slate-700 flex items-center justify-center ${playerAvatar === '/avatar_mage.png' ? 'border-blue-500 scale-110 shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'border-slate-600 opacity-50'}`}
+            >
+              <img src="/avatar_mage.png" alt="Mage" className="w-12 h-12 object-contain" onError={(e) => e.currentTarget.style.display = 'none'} />
+              <span className="absolute text-3xl -z-10">🧙‍♂️</span>
+            </button>
+            <button 
+              onClick={() => setPlayerAvatar('/avatar_warrior.png')}
+              className={`w-20 h-20 rounded-lg border-4 transition-all overflow-hidden bg-slate-700 flex items-center justify-center ${playerAvatar === '/avatar_warrior.png' ? 'border-red-500 scale-110 shadow-[0_0_15px_rgba(239,68,68,0.5)]' : 'border-slate-600 opacity-50'}`}
+            >
+              <img src="/avatar_warrior.png" alt="Warrior" className="w-12 h-12 object-contain" onError={(e) => e.currentTarget.style.display = 'none'} />
+              <span className="absolute text-3xl -z-10">🥷</span>
+            </button>
           </div>
 
           <input 
@@ -161,26 +221,32 @@ export default function Home() {
 
       {mode === 'MENU' && (
         <div className="flex flex-col gap-4 w-full max-w-md">
-          <div className="bg-slate-800 p-4 rounded-lg border border-slate-600 mb-2 flex items-center gap-4">
-             <div className="w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center text-2xl relative">
-                🧑‍💻
-                <span className="absolute -bottom-1 -right-1 text-sm">🇪🇸</span>
+          <div className="bg-slate-800 p-4 rounded-lg border border-slate-600 mb-2 flex items-center gap-4 relative overflow-hidden">
+             <div className="w-16 h-16 bg-slate-700 rounded-lg flex items-center justify-center relative border-2 border-slate-500 shadow-inner overflow-hidden">
+                <img src={playerAvatar} alt="Avatar" className="w-10 h-10 object-contain z-10" onError={(e) => e.currentTarget.style.display = 'none'} />
+                <span className="absolute -bottom-1 -right-1 text-sm z-20">🇪🇸</span>
              </div>
-             <div>
-               <p className="text-slate-400 text-xs uppercase tracking-wider">Welcome back,</p>
-               <p className="font-bold text-lg">{playerName}</p>
+             <div className="flex-1 z-10">
+               <p className="text-slate-400 text-xs uppercase tracking-wider flex justify-between">
+                 <span>Welcome back,</span>
+                 <span className="text-emerald-400 font-bold">LVL {Math.floor(exp / 100) + 1}</span>
+               </p>
+               <p className="font-bold text-xl text-white">{playerName}</p>
+               <div className="w-full bg-slate-900 h-2 rounded-full mt-2 overflow-hidden border border-slate-700">
+                  <div className="bg-emerald-500 h-full transition-all" style={{ width: `${exp % 100}%` }}></div>
+               </div>
+               <p className="text-[10px] text-right text-slate-500 mt-1">{exp % 100} / 100 EXP</p>
              </div>
           </div>
+          
+          {/* Quick Friends List Snippet */}
+          {friendsList.length > 0 && (
+            <div className="bg-slate-900/50 border border-slate-700 p-2 rounded text-xs text-slate-400 flex gap-2 overflow-x-auto">
+              <span className="font-bold text-slate-300">Friends:</span> 
+              {friendsList.map(f => <span key={f} className="bg-slate-800 px-2 rounded text-blue-300">{f}</span>)}
+            </div>
+          )}
 
-          <button 
-            onClick={() => {
-              setActiveLesson(null);
-              transitionTo('LEARNING');
-            }}
-            className="bg-blue-600 px-6 py-3 rounded-lg hover:bg-blue-500 transition"
-          >
-            Visit the Tutors (Learn)
-          </button>
           <button 
             onClick={() => transitionTo('BATTLE')}
             className="bg-red-600 px-6 py-3 rounded-lg hover:bg-red-500 transition"
@@ -323,7 +389,7 @@ export default function Home() {
         <div className="w-full max-w-2xl bg-slate-800 p-6 rounded-xl border border-green-500 shadow-lg shadow-green-900/20" onContextMenu={(e) => e.preventDefault()}>
           <h2 className="text-2xl font-bold text-green-400 mb-4 flex justify-between items-center">
             <span>The Overworld</span>
-            <span className="text-sm font-normal text-slate-400">Controls: W A S D</span>
+            <span className="text-sm font-normal text-emerald-300 bg-emerald-900/50 px-3 py-1 rounded-full border border-emerald-700">Location: {currentZone}</span>
           </h2>
           
           <div className="bg-emerald-900/30 border border-emerald-800 rounded-lg p-4 mb-4 grid grid-cols-5 grid-rows-5 gap-1 w-full max-w-sm mx-auto aspect-square relative">
@@ -331,38 +397,100 @@ export default function Home() {
               const x = i % 5;
               const y = Math.floor(i / 5);
               const isPlayer = x === playerPosition.x && y === playerPosition.y;
-              const isEnemyPlayer = x === 1 && y === 1; // Fake other player
-              const isNPC = x === 4 && y === 0; // Fake NPC
               
+              // Map Entities
+              const isEnemyPlayer = currentZone === 'Starter Village' && x === 1 && y === 1; 
+              
+              // Spread out the Tutors!
+              const isBlacksmith = currentZone === 'Starter Village' && x === 4 && y === 0;
+              const isScholar = currentZone === 'Dark Forest' && x === 2 && y === 2;
+              const isAlchemist = currentZone === 'Volcano' && x === 3 && y === 1;
+              
+              // Zone Transition Tiles
+              const isExitToForest = currentZone === 'Starter Village' && x === 4 && y === 4;
+              const isExitToVillageFromForest = currentZone === 'Dark Forest' && x === 0 && y === 0;
+              const isExitToVolcano = currentZone === 'Dark Forest' && x === 4 && y === 0;
+              const isExitToForestFromVolcano = currentZone === 'Volcano' && x === 0 && y === 4;
+              
+              // Dynamic Backgrounds
+              let bgClass = 'bg-emerald-800/40';
+              let tileImage = '/tile_grass.png';
+              if (currentZone === 'Volcano') {
+                bgClass = 'bg-orange-900/60';
+                tileImage = '/tile_lava.png';
+              } else if (currentZone === 'Dark Forest') {
+                bgClass = 'bg-emerald-950/80';
+              }
+
               return (
                 <div 
                   key={i} 
-                  className={`bg-emerald-800/50 rounded-sm flex items-center justify-center relative transition-colors ${isPlayer ? 'bg-emerald-700/50' : ''}`}
+                  className={`rounded-sm flex items-center justify-center relative transition-colors overflow-hidden
+                    ${isPlayer ? 'bg-blue-700/80 shadow-[inset_0_0_15px_rgba(59,130,246,0.8)]' : bgClass}
+                    ${(isExitToForest || isExitToVolcano) ? 'bg-blue-900/50 border-2 border-blue-500 animate-pulse' : ''}
+                    ${(isExitToVillageFromForest || isExitToForestFromVolcano) ? 'bg-yellow-900/50 border-2 border-yellow-500 animate-pulse' : ''}
+                  `}
                   onContextMenu={(e) => {
                     e.preventDefault();
-                    if (isEnemyPlayer) setContextMenu({ x: e.clientX, y: e.clientY, target: 'xX_Shadow_Xx' });
-                    if (isNPC) setContextMenu({ x: e.clientX, y: e.clientY, target: 'The Blacksmith' });
+                    if (isEnemyPlayer) setContextMenu({ x: e.clientX, y: e.clientY, target: 'xX_Shadow_Xx', type: 'player' });
+                    if (isBlacksmith) setContextMenu({ x: e.clientX, y: e.clientY, target: 'The Blacksmith', type: 'npc', lessonId: 0 }); // Maps to gameData index 0
+                    if (isScholar) setContextMenu({ x: e.clientX, y: e.clientY, target: 'The Scholar', type: 'npc', lessonId: 1 }); // Maps to gameData index 1
+                    if (isAlchemist) setContextMenu({ x: e.clientX, y: e.clientY, target: 'The Alchemist', type: 'npc', lessonId: 3 }); // Maps to gameData index 3
+                  }}
+                  onClick={() => {
+                    if (isPlayer && isExitToForest) {
+                      setCurrentZone('Dark Forest');
+                      setPlayerPosition({x: 0, y: 1}); 
+                      showToast("You entered the Dark Forest...");
+                    }
+                    if (isPlayer && isExitToVillageFromForest) {
+                      setCurrentZone('Starter Village');
+                      setPlayerPosition({x: 3, y: 4}); 
+                      showToast("You returned to the Village.");
+                    }
+                    if (isPlayer && isExitToVolcano) {
+                      setCurrentZone('Volcano');
+                      setPlayerPosition({x: 1, y: 4}); 
+                      showToast("It's getting hot... You entered the Volcano.");
+                    }
+                    if (isPlayer && isExitToForestFromVolcano) {
+                      setCurrentZone('Dark Forest');
+                      setPlayerPosition({x: 3, y: 0}); 
+                      showToast("You escaped the heat.");
+                    }
                   }}
                 >
+                  {/* Background Tile */}
+                  <img src={tileImage} alt="tile" className="absolute w-full h-full object-cover opacity-20 pointer-events-none" onError={(e) => e.currentTarget.style.display = 'none'} />
+
+                  {/* Zone Portals */}
+                  {(isExitToForest || isExitToVolcano) && <span className="text-[10px] font-bold text-blue-300 absolute z-0 drop-shadow-md">NEXT ➡️</span>}
+                  {(isExitToVillageFromForest || isExitToForestFromVolcano) && <span className="text-[10px] font-bold text-yellow-300 absolute z-0 drop-shadow-md">⬅️ BACK</span>}
+
                   {/* Dynamic Player Sprite */}
                   {isPlayer && (
-                    <div className="absolute z-10 w-full h-full flex items-center justify-center drop-shadow-lg">
-                      <img src="/player.png" alt="Player" className="w-10 h-10 object-contain animate-bounce" onError={(e) => e.currentTarget.style.display = 'none'} />
-                      {/* Fallback emoji if image isn't loaded yet */}
-                      <span className="text-3xl absolute -z-10">🧙‍♂️</span>
+                    <div className="absolute z-10 w-full h-full flex items-center justify-center drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">
+                      <img src={playerAvatar} alt="Player" className="w-10 h-10 object-contain animate-bounce" onError={(e) => e.currentTarget.style.display = 'none'} />
                     </div>
                   )}
                   
-                  {isEnemyPlayer && <div className="text-3xl absolute cursor-pointer hover:scale-110 transition" title="Right-click me!">🥷</div>}
-                  {isNPC && <div className="text-3xl absolute cursor-pointer hover:scale-110 transition" title="Right-click me!">🧑‍🌾</div>}
-                  {(x === 0 && y === 4 || x === 4 && y === 4) && <div className="text-2xl absolute opacity-70">🌲</div>}
+                  {isEnemyPlayer && <div className="text-3xl absolute z-10 cursor-pointer hover:scale-110 transition drop-shadow-md" title="Right-click me!">🥷</div>}
+                  
+                  {/* The Tutors! */}
+                  {isBlacksmith && <img src="/npc_blacksmith.png" className="w-8 h-8 absolute z-10 cursor-pointer hover:scale-110 transition drop-shadow-md" title="The Blacksmith" onError={(e) => e.currentTarget.style.display = 'none'} />}
+                  {isScholar && <img src="/npc_scholar.png" className="w-8 h-8 absolute z-10 cursor-pointer hover:scale-110 transition drop-shadow-md" title="The Scholar" onError={(e) => e.currentTarget.style.display = 'none'} />}
+                  {isAlchemist && <img src="/npc_alchemist.png" className="w-8 h-8 absolute z-10 cursor-pointer hover:scale-110 transition drop-shadow-md animate-pulse" title="The Alchemist" onError={(e) => e.currentTarget.style.display = 'none'} />}
+                  
+                  {/* Decorations */}
+                  {(currentZone === 'Dark Forest' && (x === 1 || y === 3)) && <div className="text-2xl absolute opacity-90 drop-shadow-md pointer-events-none">🌲</div>}
+                  {(currentZone === 'Volcano' && (x === 0 || y === 2)) && <div className="text-2xl absolute opacity-90 drop-shadow-md pointer-events-none text-red-500">🔥</div>}
                 </div>
               )
             })}
           </div>
 
-          <p className="text-emerald-400 font-bold text-center mb-6 animate-pulse">
-            Right-click the Ninja or Farmer for options!
+          <p className="text-emerald-400 font-bold text-center mb-6">
+            Move to the flashing tiles and <span className="text-white bg-slate-700 px-2 rounded">CLICK</span> to travel between zones!
           </p>
 
           <div className="text-center">
