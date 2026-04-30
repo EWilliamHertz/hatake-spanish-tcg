@@ -9,6 +9,8 @@ export default function Home() {
   const [unlockedCards, setUnlockedCards] = useState<any[]>([]);
   const [playerName, setPlayerName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [dummyHp, setDummyHp] = useState(50);
+  const [activeLesson, setActiveLesson] = useState<number | null>(null);
 
   // Helper function to handle smooth page transitions
   const transitionTo = (nextMode: typeof mode) => {
@@ -111,10 +113,13 @@ export default function Home() {
           </div>
 
           <button 
-            onClick={() => transitionTo('LEARNING')}
+            onClick={() => {
+              setActiveLesson(null);
+              transitionTo('LEARNING');
+            }}
             className="bg-blue-600 px-6 py-3 rounded-lg hover:bg-blue-500 transition"
           >
-            Visit the Sage's Grove (Learn)
+            Visit the Tutors (Learn)
           </button>
           <button 
             onClick={() => transitionTo('BATTLE')}
@@ -133,34 +138,67 @@ export default function Home() {
 
       {mode === 'LEARNING' && (
         <div className="bg-slate-800 p-6 rounded-xl max-w-md w-full border border-blue-500">
-          <p className="italic mb-6 text-blue-300 text-lg">"{gameData.languages.spanish.lessons[0].npc_talk}"</p>
-          
-          <div className="bg-slate-900 p-4 rounded-lg border border-slate-700">
-            <p className="mb-4 font-semibold text-white">{gameData.languages.spanish.lessons[0].quiz.question}</p>
-            <div className="flex flex-col gap-2">
-              {gameData.languages.spanish.lessons[0].quiz.options.map((option, index) => (
-                <button 
-                  key={index}
-                  onClick={() => {
-                    if (index === gameData.languages.spanish.lessons[0].quiz.correct) {
-                      alert("Correct! You unlocked: Espada & Escudo!");
-                      setUnlockedCards([...unlockedCards, ...gameData.languages.spanish.lessons[0].cards_to_unlock]);
-                      transitionTo('MENU');
-                    } else {
-                      alert("Not quite. The Sage shakes his head. Try again!");
-                    }
-                  }}
-                  className="bg-slate-700 hover:bg-blue-600 px-4 py-3 rounded transition text-left text-white"
-                >
-                  {option}
-                </button>
-              ))}
+          {activeLesson === null ? (
+            <div>
+              <h2 className="text-2xl font-bold text-blue-400 mb-4">Choose a Tutor</h2>
+              <div className="flex flex-col gap-3">
+                {gameData.languages.spanish.lessons.map((lesson, idx) => (
+                  <button 
+                    key={idx}
+                    onClick={() => setActiveLesson(idx)}
+                    className="bg-slate-700 hover:bg-blue-600 px-4 py-3 rounded transition text-left text-white"
+                  >
+                    Talk to {lesson.npc_name}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div>
+              <h3 className="font-bold text-blue-400 mb-2">{gameData.languages.spanish.lessons[activeLesson].npc_name}</h3>
+              <p className="italic mb-6 text-blue-300 text-lg">"{gameData.languages.spanish.lessons[activeLesson].npc_talk}"</p>
+              
+              <div className="bg-slate-900 p-4 rounded-lg border border-slate-700">
+                <p className="mb-4 font-semibold text-white">{gameData.languages.spanish.lessons[activeLesson].quiz.question}</p>
+                <div className="flex flex-col gap-2">
+                  {gameData.languages.spanish.lessons[activeLesson].quiz.options.map((option, index) => (
+                    <button 
+                      key={index}
+                      onClick={() => {
+                        if (index === gameData.languages.spanish.lessons[activeLesson].quiz.correct) {
+                          const newCards = gameData.languages.spanish.lessons[activeLesson].cards_to_unlock;
+                          alert(`Correct! You unlocked: ${newCards.map(c => c.word).join(', ')}!`);
+                          
+                          const isAlreadyUnlocked = unlockedCards.some(card => card.id === newCards[0].id);
+                          if (!isAlreadyUnlocked) {
+                            setUnlockedCards([...unlockedCards, ...newCards]);
+                          }
+                          
+                          setActiveLesson(null);
+                          transitionTo('MENU');
+                        } else {
+                          alert("Not quite. The tutor shakes their head. Try again!");
+                        }
+                      }}
+                      className="bg-slate-700 hover:bg-blue-600 px-4 py-3 rounded transition text-left text-white"
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <button 
+                onClick={() => setActiveLesson(null)}
+                className="mt-4 text-sm text-slate-400 hover:text-white underline transition block"
+              >
+                Back to Tutors
+              </button>
+            </div>
+          )}
 
           <button 
             onClick={() => transitionTo('MENU')}
-            className="mt-6 text-sm text-slate-400 hover:text-white underline transition"
+            className="mt-6 text-sm text-slate-400 hover:text-white underline transition border-t border-slate-700 pt-4 w-full text-left"
           >
             Flee back to Camp
           </button>
@@ -174,9 +212,19 @@ export default function Home() {
           <div className="mb-8 bg-slate-900 p-6 rounded-lg border border-slate-700 text-center flex flex-col items-center">
             <h3 className="text-xl text-slate-300 mb-2">Training Dummy</h3>
             <div className="w-full bg-slate-800 h-6 rounded-full overflow-hidden border border-slate-600">
-              <div className="bg-red-500 h-full w-full"></div>
+              <div 
+                className="bg-red-500 h-full transition-all duration-300 ease-out" 
+                style={{ width: `${Math.max(0, (dummyHp / 50) * 100)}%` }}
+              ></div>
             </div>
-            <p className="mt-2 font-mono">HP: 50 / 50</p>
+            <p className="mt-2 font-mono">HP: {dummyHp} / 50</p>
+            {dummyHp === 0 && <p className="text-green-400 font-bold mt-2 animate-bounce">Dummy Destroyed!</p>}
+            <button 
+              onClick={() => setDummyHp(50)} 
+              className="mt-4 text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded"
+            >
+              Reset Dummy
+            </button>
           </div>
           
           <h3 className="text-lg font-semibold mb-3 text-blue-300">Your Hand:</h3>
@@ -190,7 +238,7 @@ export default function Home() {
               {unlockedCards.map((card, idx) => (
                 <button 
                   key={idx}
-                  onClick={() => alert(`You attacked with ${card.word} for ${card.power} damage!`)}
+                  onClick={() => setDummyHp(prev => Math.max(0, prev - card.power))}
                   className="bg-slate-700 hover:bg-red-600 hover:-translate-y-1 p-4 rounded-lg transition-all border border-slate-600 min-w-[120px]"
                 >
                   <p className="font-bold text-xl">{card.word}</p>
@@ -202,7 +250,10 @@ export default function Home() {
           )}
           
           <div className="text-center mt-8">
-            <button onClick={() => transitionTo('MENU')} className="text-sm text-slate-400 hover:text-white underline transition">
+            <button onClick={() => {
+              setDummyHp(50);
+              transitionTo('MENU');
+            }} className="text-sm text-slate-400 hover:text-white underline transition">
               Flee Arena
             </button>
           </div>
@@ -210,9 +261,41 @@ export default function Home() {
       )}
 
       {mode === 'MAP' && (
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-green-500">World Map Under Construction</h2>
-          <button onClick={() => transitionTo('MENU')} className="mt-4 underline">Leave Map</button>
+        <div className="w-full max-w-2xl bg-slate-800 p-6 rounded-xl border border-green-500">
+          <h2 className="text-2xl font-bold text-green-400 mb-4 flex justify-between items-center">
+            <span>The Overworld</span>
+            <span className="text-sm font-normal text-slate-400">Location: Starter Village</span>
+          </h2>
+          
+          {/* This is the placeholder grid for free sprites (OpenGameArt.org) */}
+          <div className="bg-emerald-900/30 border border-emerald-800 rounded-lg p-4 mb-4 grid grid-cols-5 grid-rows-5 gap-1 w-full max-w-sm mx-auto aspect-square">
+            {Array.from({ length: 25 }).map((_, i) => (
+              <div key={i} className="bg-emerald-800/50 rounded-sm flex items-center justify-center relative">
+                {/* The Player Sprite Placeholder */}
+                {i === 12 && (
+                  <div className="text-3xl absolute animate-pulse">🧙‍♂️</div>
+                )}
+                {/* NPC Sprite Placeholder */}
+                {i === 4 && (
+                  <div className="text-2xl absolute">🧑‍🌾</div>
+                )}
+                {/* Tree Sprite Placeholder */}
+                {(i === 0 || i === 1 || i === 5) && (
+                  <div className="text-2xl absolute">🌲</div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <p className="text-slate-400 text-sm text-center mb-6">
+            Next phase: Replace these emojis with free 2D sprites and add WASD keyboard movement!
+          </p>
+
+          <div className="text-center">
+            <button onClick={() => transitionTo('MENU')} className="text-sm text-slate-400 hover:text-white underline transition">
+              Return to Camp
+            </button>
+          </div>
         </div>
       )}
     </main>
