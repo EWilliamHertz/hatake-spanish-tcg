@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import gameData from '../data/gameData.json';
 // Note: We will comment this out temporarily until your DB is fully set up
 // import { savePlayerToDB } from './actions'; 
@@ -11,6 +11,42 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [dummyHp, setDummyHp] = useState(50);
   const [activeLesson, setActiveLesson] = useState<number | null>(null);
+  
+  // New States for MMO Features
+  const [toast, setToast] = useState<string | null>(null);
+  const [playerPosition, setPlayerPosition] = useState({ x: 2, y: 2 });
+  const [contextMenu, setContextMenu] = useState<{ x: number, y: number, target: string } | null>(null);
+
+  const showToast = (message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  // WASD Keyboard Movement Listener
+  useEffect(() => {
+    if (mode !== 'MAP') return;
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      setPlayerPosition(prev => {
+        const newPos = { ...prev };
+        if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') newPos.y = Math.max(0, prev.y - 1);
+        if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') newPos.y = Math.min(4, prev.y + 1);
+        if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') newPos.x = Math.max(0, prev.x - 1);
+        if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') newPos.x = Math.min(4, prev.x + 1);
+        return newPos;
+      });
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mode]);
+
+  // Close Context Menu when clicking elsewhere
+  useEffect(() => {
+    const handleClick = () => setContextMenu(null);
+    window.addEventListener('click', handleClick);
+    return () => window.removeEventListener('click', handleClick);
+  }, []);
 
   // Helper function to handle smooth page transitions
   const transitionTo = (nextMode: typeof mode) => {
@@ -43,8 +79,32 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-900 text-white p-8 flex flex-col items-center relative">
+    <main className="min-h-screen bg-slate-900 text-white p-8 flex flex-col items-center relative overflow-hidden">
       
+      {/* Custom Toast Notification */}
+      {toast && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 bg-emerald-600 text-white px-6 py-3 rounded-full shadow-lg z-50 animate-bounce font-bold border-2 border-emerald-400">
+          {toast}
+        </div>
+      )}
+
+      {/* Right-Click Context Menu */}
+      {contextMenu && (
+        <div 
+          className="fixed bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-50 w-48 overflow-hidden"
+          style={{ top: contextMenu.y, left: contextMenu.x }}
+          onClick={(e) => e.stopPropagation()} // Prevent click from instantly closing it
+        >
+          <div className="bg-slate-900 px-4 py-2 border-b border-slate-700 text-blue-400 font-bold text-sm">
+            Target: {contextMenu.target}
+          </div>
+          <button className="w-full text-left px-4 py-2 hover:bg-slate-700 transition text-sm text-white">Move Here</button>
+          <button className="w-full text-left px-4 py-2 hover:bg-slate-700 transition text-sm text-white">Talk to {contextMenu.target}</button>
+          <button className="w-full text-left px-4 py-2 hover:bg-red-900 transition text-sm text-red-300">Duel Player</button>
+          <button className="w-full text-left px-4 py-2 hover:bg-emerald-900 transition text-sm text-emerald-300">Add as Friend</button>
+        </div>
+      )}
+
       {/* Global Loading Overlay */}
       {isLoading && (
         <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center z-50">
@@ -167,17 +227,16 @@ export default function Home() {
                       onClick={() => {
                         if (index === gameData.languages.spanish.lessons[activeLesson].quiz.correct) {
                           const newCards = gameData.languages.spanish.lessons[activeLesson].cards_to_unlock;
-                          alert(`Correct! You unlocked: ${newCards.map(c => c.word).join(', ')}!`);
+                          showToast(`✨ Unlocked: ${newCards.map(c => c.word).join(', ')}!`);
                           
                           const isAlreadyUnlocked = unlockedCards.some(card => card.id === newCards[0].id);
                           if (!isAlreadyUnlocked) {
                             setUnlockedCards([...unlockedCards, ...newCards]);
                           }
                           
-                          setActiveLesson(null);
-                          transitionTo('MENU');
+                          setActiveLesson(null); // Return to tutor list, NOT the main menu
                         } else {
-                          alert("Not quite. The tutor shakes their head. Try again!");
+                          showToast("❌ Not quite. The tutor shakes their head. Try again!");
                         }
                       }}
                       className="bg-slate-700 hover:bg-blue-600 px-4 py-3 rounded transition text-left text-white"
@@ -261,34 +320,49 @@ export default function Home() {
       )}
 
       {mode === 'MAP' && (
-        <div className="w-full max-w-2xl bg-slate-800 p-6 rounded-xl border border-green-500">
+        <div className="w-full max-w-2xl bg-slate-800 p-6 rounded-xl border border-green-500 shadow-lg shadow-green-900/20" onContextMenu={(e) => e.preventDefault()}>
           <h2 className="text-2xl font-bold text-green-400 mb-4 flex justify-between items-center">
             <span>The Overworld</span>
-            <span className="text-sm font-normal text-slate-400">Location: Starter Village</span>
+            <span className="text-sm font-normal text-slate-400">Controls: W A S D</span>
           </h2>
           
-          {/* This is the placeholder grid for free sprites (OpenGameArt.org) */}
-          <div className="bg-emerald-900/30 border border-emerald-800 rounded-lg p-4 mb-4 grid grid-cols-5 grid-rows-5 gap-1 w-full max-w-sm mx-auto aspect-square">
-            {Array.from({ length: 25 }).map((_, i) => (
-              <div key={i} className="bg-emerald-800/50 rounded-sm flex items-center justify-center relative">
-                {/* The Player Sprite Placeholder */}
-                {i === 12 && (
-                  <div className="text-3xl absolute animate-pulse">🧙‍♂️</div>
-                )}
-                {/* NPC Sprite Placeholder */}
-                {i === 4 && (
-                  <div className="text-2xl absolute">🧑‍🌾</div>
-                )}
-                {/* Tree Sprite Placeholder */}
-                {(i === 0 || i === 1 || i === 5) && (
-                  <div className="text-2xl absolute">🌲</div>
-                )}
-              </div>
-            ))}
+          <div className="bg-emerald-900/30 border border-emerald-800 rounded-lg p-4 mb-4 grid grid-cols-5 grid-rows-5 gap-1 w-full max-w-sm mx-auto aspect-square relative">
+            {Array.from({ length: 25 }).map((_, i) => {
+              const x = i % 5;
+              const y = Math.floor(i / 5);
+              const isPlayer = x === playerPosition.x && y === playerPosition.y;
+              const isEnemyPlayer = x === 1 && y === 1; // Fake other player
+              const isNPC = x === 4 && y === 0; // Fake NPC
+              
+              return (
+                <div 
+                  key={i} 
+                  className={`bg-emerald-800/50 rounded-sm flex items-center justify-center relative transition-colors ${isPlayer ? 'bg-emerald-700/50' : ''}`}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    if (isEnemyPlayer) setContextMenu({ x: e.clientX, y: e.clientY, target: 'xX_Shadow_Xx' });
+                    if (isNPC) setContextMenu({ x: e.clientX, y: e.clientY, target: 'The Blacksmith' });
+                  }}
+                >
+                  {/* Dynamic Player Sprite */}
+                  {isPlayer && (
+                    <div className="absolute z-10 w-full h-full flex items-center justify-center drop-shadow-lg">
+                      <img src="/player.png" alt="Player" className="w-10 h-10 object-contain animate-bounce" onError={(e) => e.currentTarget.style.display = 'none'} />
+                      {/* Fallback emoji if image isn't loaded yet */}
+                      <span className="text-3xl absolute -z-10">🧙‍♂️</span>
+                    </div>
+                  )}
+                  
+                  {isEnemyPlayer && <div className="text-3xl absolute cursor-pointer hover:scale-110 transition" title="Right-click me!">🥷</div>}
+                  {isNPC && <div className="text-3xl absolute cursor-pointer hover:scale-110 transition" title="Right-click me!">🧑‍🌾</div>}
+                  {(x === 0 && y === 4 || x === 4 && y === 4) && <div className="text-2xl absolute opacity-70">🌲</div>}
+                </div>
+              )
+            })}
           </div>
 
-          <p className="text-slate-400 text-sm text-center mb-6">
-            Next phase: Replace these emojis with free 2D sprites and add WASD keyboard movement!
+          <p className="text-emerald-400 font-bold text-center mb-6 animate-pulse">
+            Right-click the Ninja or Farmer for options!
           </p>
 
           <div className="text-center">
